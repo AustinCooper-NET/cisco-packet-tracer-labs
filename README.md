@@ -1,31 +1,45 @@
-# Enterprise Hybrid LAN with Routed Default Gateway
+# Cisco Packet Tracer Networking Labs
 
-## Objective
-To implement an enterprise-grade Layer 3 boundary device (Router) into a hybrid local infrastructure, defining a default gateway matrix to facilitate data routing outside the local collision domain.
+A collection of progressively advanced networking labs built in Cisco Packet Tracer while studying Computer Networking.
 
-## Network Topology
-![Network Topology](topology.png)
+## Lab Progression
 
-## 1. Complete Infrastructure Inventory
-* **1 x Cisco ISR 4331 Router (ISR-Router0):** Acts as the network's Default Gateway, establishing a Layer 3 boundary for external data routing.
-* **1 x Cisco Catalyst 2960 Switch (Switch0):** Central Layer 2 core managing hardware MAC addresses and local data frame distribution.
-* **1 x Linksys WRT300N Wireless Access Point (Wireless Router0):** Segregates mobile nodes and handles automated internal DHCP address leasing.
-* **1 x HQ Intranet Server (COMPANY-SERVER):** Hosting localized corporate HTTP/HTTPS web platform operations.
-* **4 x Diversified Workstations:** Comprising two static wired endpoints (HR and IT departments) and two mobile wireless clients (smartphone and modified interface laptop).
+| Lab Project | Concepts Covered | Topology |
+| :--- | :--- | :--- |
+| **Basic LAN** | Static IP, Layer 2 Switching | [View](images/basic-lan-topology.png) |
+| **Secure SOHO** | Wireless, DHCP | [View](images/secure-soho-topology.png) |
+| **Enterprise Gateway** | Default Gateways, L3 Routing | [View](images/enterprise-gateway-topology.png) |
+| **Enterprise LAN/WAN** | ISP Connectivity, Public Routing | [View](images/enterprise-lan-wan-topology.png) |
 
-## 2. Definitive Network Addressing Matrix
-The introduction of the Layer 3 boundary establishes a default exit route (`192.168.1.1`) required for all host configuration profiles across the primary subnet.
+---
 
-| Device Name | Connection Type | IP Address | Subnet Mask | Default Gateway |
-| :--- | :--- | :--- | :--- | :--- |
-| **ISR-Router0** | Gateway Port (Gi0/0/0) | `192.168.1.1` | `255.255.255.0` | *Self* |
-| **COMPANY-SERVER** | Wired (Fa0/3) | `192.168.1.10` | `255.255.255.0` | `192.168.1.1` |
-| **HR-DESKTOP** | Wired (Fa0/1) | `192.168.1.11` | `255.255.255.0` | `192.168.1.1` |
-| **IT-LAPTOP** | Wired (Fa0/2) | `192.168.1.12` | `255.255.255.0` | `192.168.1.1` |
-| **Wireless Router0**| Wired (Fa0/4) | DHCP Assigned | `255.255.255.0` | Dynamic |
-| **Smartphone0** | Wireless | DHCP Assigned | `255.255.255.0` | `192.168.0.1` |
-| **Wireless-Laptop1**| Wireless | DHCP Assigned | `255.255.255.0` | `192.168.0.1` |
+## Lab Spotlight: Enterprise LAN/WAN
 
-## 3. Layer 3 Boundary Verification
-* **Gateway Connectivity:** ICMP echoes (pings) executed from local segments (`192.168.1.12`) to the default gateway address (`192.168.1.1`) returned a 100% success rate with 0% packet loss, validating optimal Layer 2 to Layer 3 configuration.
-* **Core Services Persistence:** Intranet HTTP functionality and wireless DHCP sub-pools remain fully operational and unified under the new gateway coordinator.
+### Overview
+This project expanded the local corporate network into a routed WAN environment.
+
+### The Troubleshooting Log (Learning from Mistakes)
+* **Issue:** Pinging the ISP/Public server resulted in `Request timed out`.
+* **Root Cause:** Asymmetric routing. My `EDGE-ROUTER` could reach the destination, but the `ISP-ROUTER` did not have a return path to the private `192.168.1.0/24` network.
+* **Resolution:** Configured a static route (`ip route 192.168.1.0 255.255.255.0 10.0.0.2`) on the ISP router to direct traffic back to the office gateway.
+
+### Verification
+* `show ip route`: Confirmed the existence of the Gateway of Last Resort.
+* `ping 8.8.8.8`: Verified end-to-end connectivity across the WAN boundary.
+
+### Lessons Learned
+- Routing is a two-way street; routers must know how to reach the source *and* the destination.
+- ARP resolution causes the first packet of a ping to drop on new routes.
+
+---
+
+## Skills Demonstrated
+- IPv4 Subnetting & Addressing
+- Static Routing & Default Gateways
+- ISP WAN Transit Configuration
+- Network Documentation & Troubleshooting
+
+## Planned Labs
+- [ ] VLAN Segmentation
+- [ ] Inter-VLAN Routing
+- [ ] ACL Configuration
