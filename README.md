@@ -34,11 +34,15 @@ This project expanded the local corporate network into a routed WAN environment,
 
 #### EDGE-ROUTER
 * **Interface Status:** ![Interface Brief](images/edge-router-brief.png)
+  *Confirmed that all local and WAN interfaces are operational and correctly addressed.*
 * **Routing Table:** ![Routing Table](images/edge-router-route.png)
+  *Confirmed that the router contains a default route (`S*`) pointing to the ISP router, establishing the path for outgoing traffic.*
 
 #### ISP-ROUTER
 * **Interface Status:** ![Interface Brief](images/isp-router-brief.png)
+  *Confirmed that the ISP-facing and transit interfaces are active and communicating.*
 * **Routing Table:** ![Routing Table](images/isp-router-route.png)
+  *Confirmed that the ISP router contains a static return route to the internal `192.168.1.0/24` network, ensuring bidirectional traffic flow.*
 
 ---
 
