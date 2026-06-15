@@ -63,7 +63,7 @@ This project addresses a flat corporate network domain by engineering Layer 2 ne
 * **VLAN Database Initialization:** ![VLAN Brief Initial](images/vlan-brief.png)
   *Confirmed the successful creation and activation of VLANs 10, 20, 30, and 99 within the switch database before port allocation.*
 * **Port Assignments:** ![VLAN Assignments](images/vlan-assignments.png)
-  *Confirmed that FastEthernet 0/1 is actively assigned to the HR VLAN (10) and FastEthernet 0/3 is actively assigned to the IT VLAN (20).*
+  *Confirmed that FastEthernet 0/1 is actively assigned to the HR VLAN (10) and FastEthernet 0/2 is actively assigned to the IT VLAN (20).*
 
 ### Testing Results (Layer 2 Isolation)
 * **Cross-VLAN Drop Test:** ![Failed Ping](images/ping-fail.png)
