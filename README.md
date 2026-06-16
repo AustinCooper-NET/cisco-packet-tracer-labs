@@ -20,11 +20,10 @@ A collection of progressively advanced networking labs built in Cisco Packet Tra
 This lab connects a local office network to an ISP router, using a default route to give internal devices access to the public internet.
 
 ### Technologies Used
-- Cisco Packet Tracer, Layer 2 Switching, Static Routing, Layer 3 Architecture, ICMP Troubleshooting
-- IPv4 Addressing & Subnetting
-- Static Routing (Gateway of Last Resort)
-- DHCP Services
-- WAN Transit Subnets
+- **Network Architecture:** Layer 2 Switching, Layer 3 Architecture, WAN Transit Subnets
+- **Routing & Services:** Static Routing (Gateway of Last Resort), DHCP Services
+- **Protocols & Analysis:** IPv4 Subnetting, ICMP Troubleshooting
+- **Environment:** Cisco Packet Tracer, Cisco IOS CLI
 
 ### Troubleshooting Log
 * **Issue:** Devices inside the local network could not ping the ISP public server.
