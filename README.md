@@ -52,10 +52,10 @@ This lab connects a local office network to an ISP router, using a default route
 This lab isolates HR, IT, and Server devices into distinct logical subnets (VLANs 10, 20, and 30) on a single switch to limit broadcast domains. It then utilizes a single physical trunk link to an upstream router (Router-on-a-Stick) to enable controlled, routable communication between those subnets.
 
 ### Technologies Used
-- Cisco Catalyst 2960 Switch & ISR 4331 Router
-- 802.1Q Virtual Local Area Networks (VLANs)
-- Router-on-a-Stick (Sub-interfaces)
-- Inter-VLAN Routing & Logical Access Management
+- **Network Architecture:** Layer 2 Switching, Broadcast Domain Isolation, 802.1Q Virtual Local Area Networks (VLANs)
+- **Routing & Services:** Router-on-a-Stick (Sub-interfaces), Inter-VLAN Routing
+- **Protocols & Analysis:** IPv4 Subnetting, ARP Resolution, ICMP Verification
+- **Environment:** Cisco Packet Tracer, Cisco IOS CLI
 
 ### Troubleshooting Log
 * **Issue 1:** The `show interface trunk` command on the switch returned a completely blank output, and the link light between the switch and router remained red.
