@@ -98,10 +98,10 @@ This lab implements network security boundaries at the distribution layer. Using
 - **Requirement 2:** HR users must retain access to the company server.
 - **Implementation:** An Extended IP Access List named `BLOCK_HR_TO_IT` was created and applied **inbound** on the HR VLAN 10 gateway interface (`GigabitEthernet0/0/0.10`). This drops matching traffic immediately at the ingress router port before consumption of backplane routing resources.
 
-EDGE-ROUTER# show access-lists
+`EDGE-ROUTER# show access-lists
 Extended IP access list BLOCK_HR_TO_IT
 10 deny ip 192.168.10.0 0.0.0.255 192.168.20.0 0.0.0.255
-20 permit ip any any
+20 permit ip any any`
 
 ### Troubleshooting Log
 - **Issue:** The initial implementation failed, and HR devices were still able to ping the IT subnet successfully.
