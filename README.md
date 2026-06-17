@@ -1,6 +1,13 @@
 # Cisco Packet Tracer Networking Labs
 
-A collection of progressively advanced networking labs built in Cisco Packet Tracer while studying Computer Networking.
+## Overview
+
+This repository documents a structured progression of Cisco Packet Tracer networking labs designed to simulate real-world enterprise network concepts including switching, routing, segmentation, security, and network address translation.
+
+Each lab includes:
+- Configuration (Cisco IOS CLI)
+- Verification (show commands, ICMP testing)
+- Troubleshooting (root-cause analysis)
 
 ## Skills Demonstrated
 
