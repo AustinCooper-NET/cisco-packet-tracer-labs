@@ -2,6 +2,17 @@
 
 A collection of progressively advanced networking labs built in Cisco Packet Tracer while studying Computer Networking.
 
+## Skills Demonstrated
+
+- VLAN design and segmentation (802.1Q trunking)
+- Inter-VLAN routing (Router-on-a-Stick)
+- IPv4 subnetting and network planning
+- Static routing and default gateway configuration
+- ACL-based traffic filtering and security policies
+- NAT/PAT configuration for internet simulation
+- Cisco IOS CLI configuration and troubleshooting
+- Network verification using ping, ARP, and routing tables
+
 ## Lab Progression
 
 | Lab Project | Concepts Covered | Date Completed | Topology |
