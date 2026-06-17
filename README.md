@@ -11,6 +11,7 @@ A collection of progressively advanced networking labs built in Cisco Packet Tra
 | **Enterprise Gateway** | Default Gateways, L3 Routing | June 2026 | [View](images/enterprise-gateway-topology.png) |
 | **Enterprise LAN/WAN** | ISP Connectivity, Public Routing | June 2026 | [View](images/enterprise-lan-wan-topology.png) |
 | **VLAN & Inter-VLAN Routing** | 802.1Q Trunking, Sub-interfaces, ROAS | June 2026 | [View](images/roas-topology.png) |
+| **Access Control Lists (ACLs)** | Security Boundaries, Extended ACLs, Packet Filtering | June 2026 | [View](images/roas-topology.png) |
 
 ---
 
@@ -26,23 +27,23 @@ This lab connects a local office network to an ISP router, using a default route
 - **Environment:** Cisco Packet Tracer, Cisco IOS CLI
 
 ### Troubleshooting Log
-* **Issue:** Devices inside the local network could not ping the ISP public server.
-* **Root Cause:** Asymmetric routing. The ISP router received the packets but did not have a return route in its routing table for the local `192.168.1.0/24` subnet.
-* **Resolution:** Added a static route (`ip route 192.168.1.0 255.255.255.0 10.0.0.2`) on the ISP router pointing back to the edge gateway to handle return traffic.
+- **Issue:** Devices inside the local network could not ping the ISP public server.
+- **Root Cause:** Asymmetric routing occurred because the ISP router received packets but lacked a return route in its routing table for the local internal `192.168.1.0/24` subnet.
+- **Resolution:** Added a static route (`ip route 192.168.1.0 255.255.255.0 10.0.0.2`) on the ISP router pointing back to the edge gateway to properly handle outbound return traffic.
 
 ### Verification
 
 #### EDGE-ROUTER
-* **Interface Status:** ![Interface Brief](images/edge-router-brief.png)
-  *Verified that all local LAN and WAN interfaces are up and assigned the correct IPs.*
-* **Routing Table:** ![Routing Table](images/edge-router-route.png)
-  *Verified the default route (`S*`) is active and pointing traffic out to the ISP.*
+- **Interface Status:** ![Interface Brief](images/edge-router-brief.png)
+  - Verified that all local LAN and WAN interfaces are up and assigned the correct IPs.
+- **Routing Table:** ![Routing Table](images/edge-router-route.png)
+  - Verified the default route (`S*`) is active and pointing traffic out to the ISP.
 
 #### ISP-ROUTER
-* **Interface Status:** ![Interface Brief](images/isp-router-brief.png)
-  *Verified the public-facing and transit interfaces are operational.*
-* **Routing Table:** ![Routing Table](images/isp-router-route.png)
-  *Verified the static return route to the internal network is active, ensuring two-way communication.*
+- **Interface Status:** ![Interface Brief](images/isp-router-brief.png)
+  - Verified the public-facing and transit interfaces are operational.
+- **Routing Table:** ![Routing Table](images/isp-router-route.png)
+  - Verified the static return route to the internal network is active, ensuring two-way communication.
 
 ---
 
@@ -58,26 +59,69 @@ This lab isolates HR, IT, and Server devices into distinct logical subnets (VLAN
 - **Environment:** Cisco Packet Tracer, Cisco IOS CLI
 
 ### Troubleshooting Log
-* **Issue 1:** The `show interface trunk` command on the switch returned a completely blank output, and the link light between the switch and router remained red.
-  * **Root Cause:** Cisco router ports are turned off (`shutdown`) by default from the factory. Because the upstream interface was inactive, the switch port entered a disabled/non-connecting state and refused to initialize trunking negotiated behavior.
-  * **Resolution:** Entered the router CLI and issued a `no shutdown` command on the physical interface to activate the link.
-* **Issue 2:** The router CLI rejected sub-interface setup commands with an `%Invalid interface type and number` error.
-  * **Root Cause:** Attempted to configure `interface gig0/0.10`, assuming standard 2911 interface naming. The specific ISR router module installed uses a three-slot hardware mapping scheme (`slot/subslot/port`).
-  * **Resolution:** Executed `show ip interface brief` to reveal the exact hardware name format (`GigabitEthernet0/0/0`). Adjusted configuration inputs to reference `gig0/0/0.10` successfully.
+- **Issue 1:** The `show interface trunk` command on the switch returned a completely blank output, and the link light between the switch and router remained red.
+  - **Root Cause:** Cisco router ports are turned off via the `shutdown` state by default from the factory. Because the upstream interface was completely inactive, the switch port entered a disabled/non-connecting state and refused to initialize trunking negotiated behavior.
+  - **Resolution:** Entered the router CLI and issued a `no shutdown` command on the physical interface to activate the link.
+- **Issue 2:** The router CLI rejected sub-interface setup commands with an `%Invalid interface type and number` error.
+  - **Root Cause:** Attempted to configure `interface gig0/0.10`, assuming standard 2911 interface naming conventions. The specific ISR router module installed uses a three-slot hardware mapping scheme (`slot/subslot/port`).
+  - **Resolution:** Executed `show ip interface brief` to reveal the exact hardware name format (`GigabitEthernet0/0/0`). Adjusted configuration inputs to reference `gig0/0/0.10` successfully.
 
 ### Verification
 
 #### CORE-SWITCH
-* **Port Trunking Status:**
-  *Verified that `Gig0/1` is successfully acting as an active 802.1Q trunk, allowing tagged frames from VLANs 10, 20, and 30 to pass up to the routing engine.*
+- **Port Trunking Status:**
+  - Verified that `Gig0/1` is successfully acting as an active 802.1Q trunk, allowing tagged frames from VLANs 10, 20, and 30 to pass up to the routing engine.
 
 #### EDGE-ROUTER
-* **Active Routing Table:**
-  *Confirmed that virtual sub-interfaces `Gig0/0/0.10`, `Gig0/0/0.20`, and `Gig0/0/0.30` are recognized by the IOS kernel as directly connected (`C`) and serving as the valid gateway endpoints for their respective subnets.*
+- **Active Routing Table:**
+  - Confirmed that virtual sub-interfaces `Gig0/0/0.10`, `Gig0/0/0.20`, and `Gig0/0/0.30` are recognized by the IOS kernel as directly connected (`C`) and serving as the valid gateway endpoints for their respective subnets.
 
 ### Testing Results (Cross-VLAN Verification)
-* **Successful Inter-VLAN Routing:** ![Ping Test](images/ping-test.png)
-  *Executed cross-subnet diagnostic pings from HR-DESKTOP (`192.168.10.2`) to IT-LAPTOP (`192.168.20.2`) and COMPANY-SERVER (`192.168.30.10`). Initial packet drops occurred normally due to standard ARP resolution, followed by 100% continuous ICMP success responses routed via the sub-interfaces.*
+- **Successful Inter-VLAN Routing:** ![Ping Test](images/ping-test.png)
+  - Executed cross-subnet diagnostic pings from HR-DESKTOP (`192.168.10.2`) to IT-LAPTOP (`192.168.20.2`) and COMPANY-SERVER (`192.168.30.10`). Initial packet drops occurred normally due to standard ARP resolution, followed by 100% continuous ICMP success responses routed via the sub-interfaces.
+
+---
+
+## Lab Spotlight: Access Control Lists (ACLs) & Network Security
+
+### Overview
+This lab implements network security boundaries at the distribution layer. Using an Extended Access Control List (ACL) applied at the Layer 3 boundary, the network blocks unauthorized lateral movement between departmental subnets while preserving necessary access to shared company resources.
+
+### Technologies Used
+- **Network Architecture:** Layer 3 Security Boundaries, Subnet Isolation
+- **Routing & Services:** Extended Access Control Lists (ACLs), Inbound Traffic Filtering
+- **Protocols & Analysis:** Wildcard Masking, ICMP Inspection, Packet Filtering
+- **Environment:** Cisco Packet Tracer, Cisco IOS CLI
+
+### Security Policies & Implementation
+- **Requirement 1:** HR users must not access IT devices.
+- **Requirement 2:** HR users must retain access to the company server.
+- **Implementation:** An Extended IP Access List named `BLOCK_HR_TO_IT` was created and applied **inbound** on the HR VLAN 10 gateway interface (`GigabitEthernet0/0/0.10`). This drops matching traffic immediately at the ingress router port before consumption of backplane routing resources.
+
+EDGE-ROUTER# show access-lists
+Extended IP access list BLOCK_HR_TO_IT
+10 deny ip 192.168.10.0 0.0.0.255 192.168.20.0 0.0.0.255
+20 permit ip any any
+
+### Troubleshooting Log
+- **Issue:** The initial implementation failed, and HR devices were still able to ping the IT subnet successfully.
+  - **Root Cause:** A standard subnet mask (`255.255.255.0`) was mistakenly entered instead of an inverse wildcard mask (`0.0.0.255`). The Cisco IOS parsing engine inverted the entry, translating the rule destination network statement to `0.0.0.0`, leaving the actual traffic un-matched and un-blocked.
+  - **Resolution:** Removed the misconfigured entry using `no 10` inside the ACL sub-configuration menu and re-entered the statement using the proper inverse wildcard bits (`0.0.0.255`).
+
+### Verification & Validation
+
+#### Test 1: HR Desktop (`192.168.10.2`) &rarr; IT Laptop (`192.168.20.2`)
+- **Requirement:** HR users must not access IT devices.
+- **Actual Result:** **Failed** (Returned `Destination host unreachable` from gateway).
+- **Verification Proof:** ![HR to IT Failed Ping](images/acl-ping-fail.png)
+
+#### Test 2: HR Desktop (`192.168.10.2`) &rarr; Company Server (`192.168.30.10`)
+- **Requirement:** HR users may access the company server.
+- **Actual Result:** **Success** (100% ICMP echo replies received).
+
+#### Test 3: IT Laptop (`192.168.20.2`) &rarr; Company Server (`192.168.30.10`)
+- **Requirement:** IT users may access the company server.
+- **Actual Result:** **Success** (100% ICMP echo replies received).
 
 ---
 
@@ -87,7 +131,7 @@ This lab isolates HR, IT, and Server devices into distinct logical subnets (VLAN
 - [x] Enterprise Gateway
 - [x] Enterprise LAN/WAN
 - [x] VLAN Segmentation & Router-on-a-Stick
-- [ ] Access Control Lists (ACLs)
+- [x] Access Control Lists (ACLs)
 - [ ] NAT/PAT
 - [ ] OSPF Routing
 - [ ] Port Security
