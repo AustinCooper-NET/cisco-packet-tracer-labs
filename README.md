@@ -10,7 +10,7 @@ A collection of progressively advanced networking labs built in Cisco Packet Tra
 | **Secure SOHO** | Wireless, DHCP | June 2026 | [View](images/secure-soho-topology.png) |
 | **Enterprise Gateway** | Default Gateways, L3 Routing | June 2026 | [View](images/enterprise-gateway-topology.png) |
 | **Enterprise LAN/WAN** | ISP Connectivity, Public Routing | June 2026 | [View](images/enterprise-lan-wan-topology.png) |
-| **VLAN Segmentation** | Broadcast Domains, L2 Isolation | June 2026 | [View](images/vlan-segmentation-topology.png) |
+| **VLAN & Inter-VLAN Routing** | 802.1Q Trunking, Sub-interfaces, ROAS | June 2026 | [View](images/roas-topology.png) |
 
 ---
 
@@ -46,36 +46,38 @@ This lab connects a local office network to an ISP router, using a default route
 
 ---
 
-## Lab Spotlight: Department Segmentation with VLANs
+## Lab Spotlight: VLAN Segmentation & Inter-VLAN Routing (ROAS)
 
 ### Overview
-This lab separates HR, IT, and Server devices into different VLANs on a single switch to reduce broadcast traffic and prevent direct communication between departments.
+This lab isolates HR, IT, and Server devices into distinct logical subnets (VLANs 10, 20, and 30) on a single switch to limit broadcast domains. It then utilizes a single physical trunk link to an upstream router (Router-on-a-Stick) to enable controlled, routable communication between those subnets.
 
 ### Technologies Used
-- Cisco Catalyst 2960 Layer 2 Switch
-- 802.1Q VLAN Mapping
-- Broadcast Domain Isolation
+- Cisco Catalyst 2960 Switch & ISR 4331 Router
+- 802.1Q Virtual Local Area Networks (VLANs)
+- Router-on-a-Stick (Sub-interfaces)
+- Inter-VLAN Routing & Logical Access Management
 
 ### Troubleshooting Log
-* **Issue 1:** CLI commands rejected with an "Invalid input detected" error marker.
-* **Root Cause:** Attempted to run the `configure terminal` command while still in restricted User Exec Mode (`Switch>`).
-* **Resolution:** Typed `enable` to move into Privileged Exec Mode (`Switch#`) first, which unlocked configuration access.
-
-* **Issue 2:** The IT laptop and Company Server were not getting isolated correctly after initial configuration.
-* **Root Cause:** The physical network cables were plugged into different switch ports than originally planned. The IT laptop was in port `Fa0/2` and the server was in `Fa0/3`.
-* **Resolution:** Ran `show mac address-table` after sending traffic from the devices to map them to their actual physical ports. Updated the switch config to assign ports `Fa0/1`, `Fa0/2`, and `Fa0/3` to VLANs 10, 20, and 30 respectively.
+* **Issue 1:** The `show interface trunk` command on the switch returned a completely blank output, and the link light between the switch and router remained red.
+  * **Root Cause:** Cisco router ports are turned off (`shutdown`) by default from the factory. Because the upstream interface was inactive, the switch port entered a disabled/non-connecting state and refused to initialize trunking negotiated behavior.
+  * **Resolution:** Entered the router CLI and issued a `no shutdown` command on the physical interface to activate the link.
+* **Issue 2:** The router CLI rejected sub-interface setup commands with an `%Invalid interface type and number` error.
+  * **Root Cause:** Attempted to configure `interface gig0/0.10`, assuming standard 2911 interface naming. The specific ISR router module installed uses a three-slot hardware mapping scheme (`slot/subslot/port`).
+  * **Resolution:** Executed `show ip interface brief` to reveal the exact hardware name format (`GigabitEthernet0/0/0`). Adjusted configuration inputs to reference `gig0/0/0.10` successfully.
 
 ### Verification
 
 #### CORE-SWITCH
-* **VLAN Database Initialization:** ![VLAN Brief Initial](images/vlan-brief.png)
-  *Verified that VLANs 10, 20, 30, and 99 were successfully created and active in the switch database.*
-* **Port Assignments:** ![VLAN Assignments](images/vlan-assignments.png)
-  *Verified that `Fa0/1` is assigned to HR (VLAN 10), `Fa0/2` to IT (VLAN 20), and `Fa0/3` to SERVERS (VLAN 30).*
+* **Port Trunking Status:**
+  *Verified that `Gig0/1` is successfully acting as an active 802.1Q trunk, allowing tagged frames from VLANs 10, 20, and 30 to pass up to the routing engine.*
 
-### Testing Results (Layer 2 Isolation)
-* **Cross-VLAN Ping Test:** ![Failed Ping](images/ping-fail.png)
-  *Attempted to ping from HR-DESKTOP (192.168.10.2) to IT-LAPTOP (192.168.20.2). The ping timed out as expected, proving that Layer 2 isolation is working and the departments cannot communicate without a router.*
+#### EDGE-ROUTER
+* **Active Routing Table:**
+  *Confirmed that virtual sub-interfaces `Gig0/0/0.10`, `Gig0/0/0.20`, and `Gig0/0/0.30` are recognized by the IOS kernel as directly connected (`C`) and serving as the valid gateway endpoints for their respective subnets.*
+
+### Testing Results (Cross-VLAN Verification)
+* **Successful Inter-VLAN Routing:** ![Ping Test](images/ping-test.png)
+  *Executed cross-subnet diagnostic pings from HR-DESKTOP (`192.168.10.2`) to IT-LAPTOP (`192.168.20.2`) and COMPANY-SERVER (`192.168.30.10`). Initial packet drops occurred normally due to standard ARP resolution, followed by 100% continuous ICMP success responses routed via the sub-interfaces.*
 
 ---
 
@@ -84,8 +86,7 @@ This lab separates HR, IT, and Server devices into different VLANs on a single s
 - [x] Secure SOHO
 - [x] Enterprise Gateway
 - [x] Enterprise LAN/WAN
-- [x] VLAN Segmentation
-- [ ] Router-on-a-Stick (Inter-VLAN Routing)
+- [x] VLAN Segmentation & Router-on-a-Stick
 - [ ] Access Control Lists (ACLs)
 - [ ] NAT/PAT
 - [ ] OSPF Routing
