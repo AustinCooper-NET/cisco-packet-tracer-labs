@@ -104,10 +104,12 @@ This lab implements network security boundaries at the distribution layer. Using
         20 permit ip any any
 
 ### Troubleshooting Log
-- **Issue:** The initial implementation failed, and HR devices were still able to ping the IT subnet successfully.
-  - **Root Cause:** A standard subnet mask (`255.255.255.0`) was mistakenly entered instead of a wildcard mask (`0.0.0.255`). Because ACLs use wildcard masks to define matching criteria, the rule did not correctly match traffic between the HR and IT subnets and therefore failed to block the intended packets.
-  - **Resolution:** Removed the misconfigured entry using `no 10` inside the ACL sub-configuration menu and re-entered the statement using the proper inverse wildcard bits (`0.0.0.255`).
 
+- **Issue:** The initial implementation failed, and HR devices were still able to ping the IT subnet successfully.
+
+- **Root Cause:** A standard subnet mask (`255.255.255.0`) was mistakenly entered instead of a wildcard mask (`0.0.0.255`). Because ACLs use wildcard masks to define matching criteria, the rule did not correctly match traffic between the HR and IT subnets and therefore failed to block the intended packets.
+
+- **Resolution:** Removed the misconfigured entry using `no 10` within the ACL configuration and re-entered the statement using the correct wildcard mask (`0.0.0.255`).
 ### Verification & Validation
 
 #### Test 1: HR Desktop (`192.168.10.2`) &rarr; IT Laptop (`192.168.20.2`)
