@@ -96,7 +96,7 @@ This lab implements network security boundaries at the distribution layer. Using
 ### Security Policies & Implementation
 - **Requirement 1:** HR users must not access IT devices.
 - **Requirement 2:** HR users must retain access to the company server.
-- **Implementation:** An Extended IP Access List named `BLOCK_HR_TO_IT` was created and applied **inbound** on the HR VLAN 10 gateway interface (`GigabitEthernet0/0/0.10`). This drops matching traffic immediately at the ingress router port before consumption of backplane routing resources.
+- **Implementation:** An Extended IP Access List named `BLOCK_HR_TO_IT` was created and applied **inbound** on the HR VLAN 10 gateway interface (`GigabitEthernet0/0/0.10`). The ACL was applied inbound on the HR VLAN gateway (G0/0/0.10) so unauthorized traffic is filtered before being routed to other VLANs.
 
     EDGE-ROUTER# show access-lists
     Extended IP access list BLOCK_HR_TO_IT
