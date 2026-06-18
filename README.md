@@ -24,6 +24,8 @@ Focus areas include:
 | **VLAN & Inter-VLAN Routing** | 802.1Q Trunking, Sub-interfaces, ROAS | June 2026 | [View](images/roas-topology.png) |
 | **Access Control Lists (ACLs)** | Security Boundaries, Extended ACLs, Packet Filtering | June 2026 | [View](images/acl-topology.png) |
 | **Dynamic NAT / PAT** | NAT Overload, Private/Public Boundaries, Port Tracking | June 2026 | [View](images/nat-topology.png) |
+| **OSPF Routing** | Link-State, Convergence, Metric Manipulation | June 2026 | [View](images/ospf-topology.png) |
+
 
 ---
 
@@ -179,6 +181,43 @@ Router(config)# ip nat inside source list 5 interface gig0/0/1 overload
 
 ---
 
+## Lab Spotlight: OSPF Dynamic Routing
+
+### Overview
+This lab moves beyond static routing to implement **Open Shortest Path First (OSPF)**. By utilizing a redundant triangle topology, we demonstrate the protocol's ability to maintain network connectivity by dynamically recalculating the best path when a link failure occurs, ensuring true high availability.
+
+### Technologies Used
+- **Network Architecture:** Redundant Triangle Topology, Backbone Area (Area 0)
+- **Routing & Services:** Link-State Routing (OSPF), Router-ID Assignment
+- **Protocols & Analysis:** Dijkstra’s Algorithm, OSPF Neighbor Adjacency, Automatic Path Costing
+- **Environment:** Cisco Packet Tracer, Cisco IOS CLI
+
+### Troubleshooting Log
+- **Issue 1:** Console became unresponsive due to high-volume debug message output while observing OSPF events.
+  - **Resolution:** Used the `undebug all` command and the `Ctrl + C` global interrupt key to regain terminal control.
+- **Issue 2:** Received an `% Invalid input detected` error when attempting to run a continuous ping with the `repeat` flag via the CLI.
+  - **Resolution:** Simplified the ping command to `ping 10.0.0.6` and re-executed manually to observe real-time failure and recovery states.
+- **Issue 3:** Initial pings failed after shutting down the primary `Gig0/0` interface.
+  - **Resolution:** Diagnosed the convergence delay; confirmed that OSPF successfully transitioned to the secondary path through R2 after waiting for the OSPF dead interval to expire and the routing table to update.
+
+### Verification & Validation
+
+#### 1. Topology & Adjacency
+- **OSPF Neighbor Adjacency:** Confirmed stable peering between all routers in the backbone area.
+- **Verification Proof:** ![Neighbor Adjacency](images/ospf-neighbor-adjacency.png)
+
+#### 2. Routing Table & Convergence
+- **Routing Table:** Verified dynamic 'O' routes are present, indicating a full OSPF-learned map.
+- **Verification Proof:** ![Active Routing Table](images/ospf-routing-table-active.png)
+
+#### 3. Resilience Stress Test (Convergence)
+- **Baseline Connectivity:** Ping success established on primary path.
+  - **Proof:** ![Primary Ping Success](images/ospf-ping-success-primary.png)
+- **Converged Connectivity:** Ping success maintained via redundant path after primary link `shutdown`.
+  - **Proof:** ![Convergence Ping Success](images/ospf-ping-success-after-convergence.png)
+
+---
+
 ## Planned Labs
 - [x] Basic LAN
 - [x] Secure SOHO
@@ -187,5 +226,5 @@ Router(config)# ip nat inside source list 5 interface gig0/0/1 overload
 - [x] VLAN Segmentation & Router-on-a-Stick
 - [x] Access Control Lists (ACLs)
 - [x] Dynamic NAT / PAT
-- [ ] OSPF Routing
+- [x] OSPF Routing
 - [ ] Port Security
