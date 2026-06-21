@@ -13,6 +13,7 @@ Focus areas include:
 - WAN connectivity and routing behavior
 - IPv4 address translation (NAT/PAT)
 - Dynamic routing and link-state protocols (OSPF)
+- Capstone: integrated enterprise network design (VLANs, firewall, NAT, ACLs)
 
 ## Lab Progression
 
@@ -26,7 +27,7 @@ Focus areas include:
 | **Access Control Lists (ACLs)** | Security Boundaries, Extended ACLs, Packet Filtering | June 2026 | [View](images/acl-topology.png) |
 | **Dynamic NAT / PAT** | NAT Overload, Private/Public Boundaries, Port Tracking | June 2026 | [View](images/nat-topology.png) |
 | **OSPF Routing** | Link-State, Convergence, Metric Manipulation | June 2026 | [View](images/ospf-topology.png) |
-
+| **Business Network Capstone** | Multilayer VLANs, Edge Firewall, NAT/PAT, Static Port Forwarding, ACL-based Segmentation | June 2026 | [View](images/01_Network_Topology.png) |
 
 ---
 
@@ -219,6 +220,107 @@ This lab moves beyond static routing to implement **Open Shortest Path First (OS
 
 ---
 
+## Lab Spotlight: Business Network Capstone (VLANs, Firewall, NAT, ACLs)
+
+### Overview
+This capstone integrates every prior concept into a single simulated small-business network. A multilayer core switch handles VLAN segmentation, DHCP, and inter-VLAN routing for four departments (Sales, HR, IT, Guest), while a dedicated edge router acts as a stateful-style firewall — enforcing NAT/PAT for outbound internet access, a default-deny inbound policy, static port forwarding to an internal web server, and ACL-based isolation of the guest network from internal resources. A separate ISP router simulates the public internet for end-to-end testing.
+
+### Technologies Used
+- **Network Architecture:** Multilayer Core Switching, Departmental VLAN Segmentation, Edge Firewall Design, WAN Transit Subnets
+- **Routing & Services:** Inter-VLAN Routing, DHCP Services (per-VLAN pools), Static Routing
+- **Security:** Extended ACLs (default-deny inbound), Standard ACLs (NAT source matching), VLAN-based traffic isolation
+- **NAT/PAT:** Dynamic PAT (NAT Overload) for outbound traffic, Static NAT port forwarding (TCP/80) for inbound web access
+- **Protocols & Analysis:** 802.1Q Trunking, IPv4 Subnetting, ICMP Inspection, Transport Layer Port Tracking
+- **Environment:** Cisco Packet Tracer, Cisco IOS CLI
+
+### Design
+| VLAN | Name | Subnet | Gateway |
+|---|---|---|---|
+| 10 | Sales | 192.168.10.0/24 | 192.168.10.1 |
+| 20 | HR | 192.168.20.0/24 | 192.168.20.1 |
+| 30 | IT | 192.168.30.0/24 | 192.168.30.1 |
+| 99 | Guest | 192.168.99.0/24 | 192.168.99.1 |
+
+WAN transit link (EDGE-FW ↔ ISP): `203.0.113.0/30`. Inside link (EDGE-FW ↔ CORE-SW): `192.168.1.0/30`.
+
+### Troubleshooting Log
+This build surfaced the largest number of distinct, real configuration issues of any lab in this series — documented in the order they were found:
+
+- **Issue 1: Trunk port rejected `switchport mode trunk`.**
+  - **Root Cause:** The 3560 multilayer switch defaults trunk encapsulation to `Auto`, and IOS will not allow a port to switch into trunk mode while encapsulation is unresolved.
+  - **Resolution:** Explicitly set `switchport trunk encapsulation dot1q` on each trunk port before issuing `switchport mode trunk`.
+
+- **Issue 2: ISP router rejected `ip address 8.8.8.0 255.255.255.0` with "Bad mask /24 for address."**
+  - **Root Cause:** `8.8.8.0` is the network address of that /24, not a usable host address — IOS will not assign a network address directly to an interface.
+  - **Resolution:** Reassigned the interface to `8.8.8.1/24` and updated the downstream test PC's default gateway to match.
+
+- **Issue 3: Outbound ping from an inside PC to the simulated internet (`8.8.8.10`) timed out completely, despite correct NAT and ACL configuration.**
+  - **Root Cause:** The edge firewall (`EDGE-FW`) had no route back to any of the internal VLAN subnets — only its directly connected networks and a default route toward the ISP. NAT could translate outbound packets, but the firewall had no path to route replies back to the originating VLAN.
+  - **Resolution:** Added explicit static routes on `EDGE-FW` for each VLAN subnet, pointing to the core switch's inside interface (`192.168.1.1`).
+
+- **Issue 4: After fixing routing, ping replies were still silently dropped at the firewall.**
+  - **Root Cause:** The outside-facing ACL (`OUTSIDE_IN`) only permitted established **TCP** traffic back in. ICMP echo-replies are not TCP, so they fell through to the final `deny ip any any` and were blocked — even though the request had gone out successfully.
+  - **Resolution:** Added explicit `permit icmp any any echo-reply` and `permit icmp any any unreachable` entries to the ACL, ahead of the final deny statement.
+
+- **Issue 5: ACL configuration rejected with "Invalid input detected" on `time-exceeded` and on the `log` keyword.**
+  - **Root Cause:** Packet Tracer's simulated IOS implements only a reduced subset of real ACL keywords; `time-exceeded` as an ICMP message type and the `log` modifier on `deny` statements are not supported in this simulated environment.
+  - **Resolution:** Removed both unsupported elements and finalized the ACL using only verified-supported keywords (`echo-reply`, `unreachable`, `established`).
+
+- **Issue 6: Ping from the simulated outside PC to an internal host still timed out after all firewall fixes were applied.**
+  - **Root Cause:** The outside test PC itself had no default gateway configured (`0.0.0.0`), despite having a valid static IP — it had no way to send traffic anywhere off its local segment.
+  - **Resolution:** Set the test PC's default gateway to the ISP router's interface address.
+
+- **Issue 7: An unsolicited ping from the outside test PC into the internal network was refused by the firewall.**
+  - **Root Cause:** Initially mistaken for a bug — investigation confirmed this was correct, intentional behavior. The `OUTSIDE_IN` ACL only permits ICMP echo-*replies* (responses to internally-initiated pings), not fresh inbound echo-*requests*. This is the expected default-deny posture of an edge firewall.
+  - **Resolution:** No fix needed; documented as a successful security validation rather than a defect.
+
+- **Issue 8: Outside PC could not load the internal web server's page via the firewall's public IP — connection was reset.**
+  - **Root Cause:** The ACL permitted port 80/443 traffic *to* the firewall's public IP, but no NAT rule existed to actually forward that traffic to the internal web server. The firewall's own interface was receiving the connection with nothing listening on it.
+  - **Resolution:** Added a static NAT port-forward rule (`ip nat inside source static tcp 192.168.30.50 80 203.0.113.2 80`) to translate and forward inbound port 80 traffic to the internal server.
+
+- **Issue 9: Even after the static NAT rule was added, the web page still failed to load with "Server Reset Connection."**
+  - **Root Cause:** The HTTP service toggle on the internal web server was left in the **off** position — the toggle had visually appeared close to "on" but had not actually been switched.
+  - **Resolution:** Confirmed the HTTP service toggle was fully switched to the on position in the server's Services tab.
+
+- **Issue 10: Guest VLAN devices could still ping Sales and HR hosts despite a correctly written isolation ACL.**
+  - **Root Cause:** The `GUEST_ISOLATE` ACL was created correctly and verified via `show access-lists`, but had never actually been applied to the VLAN 99 interface — `show running-config` confirmed the `ip access-group` command was missing from that interface's configuration entirely.
+  - **Resolution:** Applied `ip access-group GUEST_ISOLATE in` to `interface Vlan99` on the core switch, then re-verified isolation behavior.
+
+### Verification & Validation
+
+#### VLAN & Switching
+- **VLAN Table:** ![VLAN Configuration](images/02_VLAN_Configuration.png) — confirms VLANs 10/20/30/99 active with correct port assignments.
+- **Trunk Status:** ![Trunk Verification](images/03_Trunk_Verification.png) — confirms all trunk links up, 802.1Q encapsulation, correct allowed VLAN list.
+- **Core Routing Table:** ![Core Switch Routing](images/04_CoreSwitch_Routing.png) — confirms all VLAN subnets directly connected plus default route toward the firewall.
+
+#### DHCP
+- **Sales:** ![DHCP Sales](images/05_DHCP_Sales.png)
+- **HR:** ![DHCP HR](images/06_DHCP_HR.png)
+- **IT:** ![DHCP IT](images/07_DHCP_IT.png)
+- **Guest:** ![DHCP Guest](images/08_DHCP_Guest.png)
+- Each PC received a correct DHCP lease scoped to its own VLAN subnet and gateway.
+
+#### Inter-VLAN Routing
+- **Cross-VLAN Ping Success:** ![InterVLAN Ping Success](images/09_InterVLAN_Ping_Success.png) — Sales successfully reaches HR via the core switch's routed interfaces.
+
+#### Edge Firewall & WAN
+- **ISP Routing Table:** ![ISP Routing](images/10_ISP_Routing.png) — confirms the return route to the internal `192.168.0.0/16` summary is present, resolving Issue 3's symptom from the ISP side.
+- **Firewall Interfaces:** ![Firewall Interfaces](images/11_Firewall_Interfaces.png) — confirms inside/outside interfaces correctly assigned and up.
+- **NAT Configuration:** ![NAT Configuration](images/12_NAT_Configuration.png) — shows both the dynamic PAT overload rule and the static port-forward rule for the web server.
+
+#### Outbound & Inbound Behavior
+- **Outbound Internet Test:** ![Outbound Internet Test](images/14_Outbound_Internet_Test.png) — successful ping from an inside host to the simulated internet, confirming NAT and routing both function end-to-end.
+- **Inbound Ping Blocked:** ![Inbound Ping Blocked](images/15_Inbound_Ping_Blocked.png) — unsolicited inbound ping from the outside test host correctly refused, confirming default-deny posture (see Issue 7).
+- **Web Server Access Success:** ![Web Server Access Success](images/17_WebServer_Access_Success.png) — outside host successfully loads the internal web server's page through the static NAT port-forward (see Issues 8 and 9).
+
+#### Access Control Lists
+- **ACL Configuration:** ![ACL Configuration](images/18_ACL_Configuration.png) — `show access-lists` output for both the firewall (`NAT_SOURCES`, `OUTSIDE_IN`, with live match counters) and the core switch (`GUEST_ISOLATE`, confirmed applied after Issue 10's fix).
+
+#### Network Diagram
+- **Full Topology:** ![Network Topology](images/01_Network_Topology.png) — fully labeled diagram showing every device, subnet, and security boundary.
+
+---
+
 ## Planned Labs
 - [x] Basic LAN
 - [x] Secure SOHO
@@ -228,4 +330,5 @@ This lab moves beyond static routing to implement **Open Shortest Path First (OS
 - [x] Access Control Lists (ACLs)
 - [x] Dynamic NAT / PAT
 - [x] OSPF Routing
+- [x] Business Network Capstone (VLANs, Firewall, NAT, ACLs)
 - [ ] Port Security
