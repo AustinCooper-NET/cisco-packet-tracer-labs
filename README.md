@@ -2,7 +2,31 @@
 
 A collection of progressively advanced networking labs built in Cisco Packet Tracer while studying Computer Networking.
 
-![Cisco IOS](https://img.shields.io/badge/Cisco-IOS-blue)
+![Cisco Packet Tracer](https://img.shields.io/badge/Cisco-Packet%20Tracer-1BA0D7?logo=cisco&logoColor=white)
+![Cisco IOS](https://img.shields.io/badge/Cisco-IOS-1BA0D7?logo=cisco&logoColor=white)
+![VLANs](https://img.shields.io/badge/Networking-VLANs-4C9A2A)
+![Routing](https://img.shields.io/badge/Routing-Static%20%26%20OSPF-4C9A2A)
+![NAT/PAT](https://img.shields.io/badge/NAT-PAT%20%2F%20Overload-4C9A2A)
+![ACLs](https://img.shields.io/badge/Security-ACLs-D9534F)
+![Firewall](https://img.shields.io/badge/Security-Edge%20Firewall-D9534F)
+![DHCP](https://img.shields.io/badge/Services-DHCP-F0AD4E)
+![CCNA](https://img.shields.io/badge/Cert%20Track-CCNA-6f42c1)
+
+## TL;DR
+
+Self directed networking labs built in Cisco Packet Tracer to learn enterprise network design hands on, from basic switching up through a full capstone integrating VLANs, an edge firewall, NAT/PAT, and ACL-based security. Every lab includes real configs, real errors hit along the way, and the actual root cause + fix for each one (not just a finished, error free walkthrough). The capstone is the most complete project, a simulated small business network with departmental VLANs, DHCP, inter-VLAN routing, a firewall enforcing default-deny inbound with NAT/PAT and static port forwarding, and ACL-based guest isolation fully tested end to end.
+
+## 🛠️ Skills Demonstrated
+
+| Category | Skills |
+|---|---|
+| **Switching** | VLANs, 802.1Q Trunking, Inter-VLAN Routing, Router-on-a-Stick, Broadcast Domain Isolation |
+| **Routing** | Static Routing, Default Routes (Gateway of Last Resort), OSPF (Link-State Routing, Convergence) |
+| **Security** | Extended & Standard ACLs, Wildcard Masking, Default-Deny Firewall Policy, VLAN-Based Segmentation |
+| **Address Translation** | Dynamic NAT, PAT / NAT Overload, Static NAT Port Forwarding |
+| **Services** | DHCP (per-VLAN scoped pools), HTTP/Web Services |
+| **Tools & Platforms** | Cisco Packet Tracer, Cisco IOS CLI |
+| **Methodology** | Structured Troubleshooting, Root Cause Analysis, Configuration Verification & Testing |
 
 ## 📡 Network Simulation Portfolio
 
@@ -273,7 +297,7 @@ This build surfaced the largest number of distinct, real configuration issues of
   - **Resolution:** Set the test PC's default gateway to the ISP router's interface address.
 
 - **Issue 7: An unsolicited ping from the outside test PC into the internal network was refused by the firewall.**
-  - **Root Cause:** Initially mistaken for a bug, investigation confirmed this was correct, intentional behavior. The `OUTSIDE_IN` ACL only permits ICMP echo-*replies* (responses to internally-initiated pings), not fresh inbound echo-*requests*. This is the expected default-deny posture of an edge firewall.
+  - **Root Cause:** Initially mistaken for a bug — investigation confirmed this was correct, intentional behavior. The `OUTSIDE_IN` ACL only permits ICMP echo-*replies* (responses to internally-initiated pings), not fresh inbound echo-*requests*. This is the expected default-deny posture of an edge firewall.
   - **Resolution:** No fix needed; documented as a successful security validation rather than a defect.
 
 - **Issue 8: Outside PC could not load the internal web server's page via the firewall's public IP — connection was reset.**
